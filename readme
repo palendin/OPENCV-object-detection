@@ -1,0 +1,38 @@
+for opencv cascade training
+
+1. create two folders, 1 named positive, and 1 named negative
+2. use take_screenshots.py to capture positive and negative images, make sure positive and negative path in this file refers to your positive/negative folders
+3. run cascadeutils.py to generate a txt file for negative images. this contains the path of the negative images in jpg format
+4. for positive image txt file, you need 1) path of the images, 2) number of objects, 3) bounding rectangles
+5. to do that, you need to install opencv annotation (not from pip install). Google opencv prebuild library, and download opencv-3.4.11-vc14_cv15.exe
+6. extract to a folder
+7. in terminal, navigate to where the positive image folder is. then in the terminal, run the path of the opencv_annotation.exe, so 'path'/open_cv_annotation.exe --annotations=pos.txt --images=positive/
+8. after running the command, an image will show up. create rectangles of the desired objects, press c to confirm. press d to undo confirm. if havent confirmed, click elsewhere to undo
+9. press n to move to next image. keep track of where you are at so you can continue where you left off later 
+10. a pos.txt will be created. make sure to change all forward slash to backward slash
+11. go to the dir where pos.txt is, and type this in powershell: 'path'\opencv_createsamples.exe -info pos.txt -w 24 -h 24 -num 1000 -vec pos.vec, where the 'path' is the path to the opencv annotation folder
+- the width and height values = 24 is set to detect only images >= 24 pixels
+- larger w h values may improve detection but training takes longer
+- "num 1000" - number of vectors, this needs to just be some number larger than total # of rectangles you drew, so it will include all the rectangles
+- -vec pos.vec -> this is where to save output, the file is call pos.vec (binary file), itll just be in the same folder as a pos.txt since the directory is already there.
+
+12. if the pos.vec file is created, create a folder call "cascade"
+13. to train the model, go to the cascade folder (where we want to save the training data), type in command 'path'/opencv_traincascade.exe -data cascade/ -vec pos.vec -bg neg.txt -w 24 -h 24 -precalcValBufSize 3000 -precalcIdxBufSize 3000 -numPos 500 -numNeg 250 -numStages 20 -maxFalseAlarmRate 0.3 -minHitRate 0.999
+
+#"cascade" is the folder for creation. -vec is argument for positive vector, -bg is background, argument for negative text file
+#numPos needs to be less than the num of rectangles in pos txt file or else there will ben an error. Can play around
+#numNeg doesnt matter, generally half the numPos or 2x. can play around
+#numStages - training stages, 10 is a good starting number for 200 samples
+#bufSize - for example, 5000 = 5g of ram dedicated to training model. its a value that can slow or speed up training
+#false alarm rate - keep adding layers N until the false alarm rate is below the set value
+#hit rate - keep adding layer until hit rate is above the set value
+
+#in the model: HR = hit rate, FA = false alarm, N = layer, higher the N, higher the detail. we want the highest N to have the lowest FA (minimization) 
+# HR and FA stand for hit rate and false alarm. Conceptually: hitRate = % of positive samples that are classified correctly as such. falseAlarm = % of negative samples incorrectly classified as positive.
+
+#keep track of your parameters
+#if training stop for whatever reason, can continue by entering same parameter. 
+#can also enter fewer/more numStages to test how each stages improve. it will override the cascade xml file  
+
+
+#running python file in python terminal - C:/Users/Wayne/AppData/Local/Programs/Python/Python37/python.exe
